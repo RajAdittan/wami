@@ -11,6 +11,7 @@ import * as express from 'express';
 import * as os from "os";
 import { log } from 'util';
 import { IConfig } from './config';
+import {min} from "moment";
 
 const app = express();
 const config: IConfig = require('../config.json');
@@ -32,9 +33,11 @@ app.route(apiBase).get((req, res) => {
         { arch: os.arch(), hint: apiBase+'/arch' },
         { release: os.release(), hint: apiBase+'/release' },
         { uptime: os.uptime(), hint: apiBase+'/uptime' },
-        { memory: '<hint>', hint: apiBase+'/memory' },
-        { cpus: '<hint>', hint: apiBase+'/cpu' },
-        { networkInterfaces: '<hint>', hint: apiBase+'/nic' }
+        { memory: Math.round(os.totalmem()/(1024*1024*1024)) +' GB', hint: apiBase+'/memory' },
+        { cpus: os.cpus().length, hint: apiBase+'/cpu' },
+        { endian: os.endianness(), hint: apiBase+'/endian'},
+        { networkInterfaces: 'see hint', hint: apiBase+'/nic' },
+        { user: "see hint", hint: apiBase+'/user'}
        ]
     });
 });
@@ -70,7 +73,14 @@ app.route(apiBase+'/release').get((req, res) => {
 
 app.route(apiBase+'/uptime').get((req, res) => {
     log('api endpoint['+ req.url + '] called');
-    res.send(''+os.uptime());
+    let upTime = os.uptime();
+    const minutes = 1000 * 60;
+    const hours = minutes * 60;
+    const days = hours * 24;
+    let upTimeStr = Date() + ' up ' + Math.round(upTime/days) + ' days :' +
+        Math.round(upTime/hours) + ' hours :' +
+        Math.round(upTime/minutes) + ' minutes';
+    res.send(upTimeStr);
 });
 
 app.route(apiBase+'/memory').get((req, res) => {
@@ -98,7 +108,12 @@ app.route(apiBase+'/nic').get((req, res) => {
 
 app.route(apiBase+'/endian').get((req, res) => {
     log('api endpoint['+ req.url + '] called');
-    res.send(os.endianness());
+    let endian = os.endianness();
+    if(endian==='LE') {
+        res.send('Little Endian');
+    } else {
+        res.send('Big Endian');
+    }
 });
 
 app.route(apiBase+'/home').get((req, res) => {
