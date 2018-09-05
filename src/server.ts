@@ -26,17 +26,21 @@ app.listen(config.port, config.hostname, () => {
 app.route(apiBase).get((req, res) => {
     log('api endpoint['+ req.url + '] called');
     res.send({
-       host: [{ hostname: os.hostname() },
-        { type: os.type() },
-        { platform: os.platform() },
-        { arch: os.arch() },
-        { release: os.release() },        
-        { uptime: os.uptime() },
-        { memory: apiBase+'/memory' },
-        { cpus: apiBase+'/cpu' },
-        { networkInterfaces: apiBase+'/nic' }
+       host: [{ hostname: os.hostname(), hint: apiBase+'/hostname'} ,
+        { type: os.type(), hint: apiBase+'/type'},
+        { platform: os.platform(), hint: apiBase+'/platform' },
+        { arch: os.arch(), hint: apiBase+'/arch' },
+        { release: os.release(), hint: apiBase+'/release' },
+        { uptime: os.uptime(), hint: apiBase+'/uptime' },
+        { memory: '<hint>', hint: apiBase+'/memory' },
+        { cpus: '<hint>', hint: apiBase+'/cpu' },
+        { networkInterfaces: '<hint>', hint: apiBase+'/nic' }
        ]
     });
+});
+
+app.route('/').get((req, res)=> {
+   res.redirect(apiBase);
 });
 
 app.route(apiBase+'/hostname').get((req, res) => {
